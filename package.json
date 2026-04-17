@@ -1,0 +1,10 @@
+{
+  "name": "syncbridge-notion-helper",
+  "version": "1.0.0",
+  "description": "Helper for SyncBridge Notion integration",
+  "main": "index.js",
+  "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "dotenv": "^16.4.5"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "spring-boot-engineer": {
+      "source": "hainamchung/agent-assistant",
+      "sourceType": "github",
+      "computedHash": "bab038d4a3ffb4b62c1bf04362970e36d3ededeb0cd49092f600dad452235fb0"
+    }
+  }
+}

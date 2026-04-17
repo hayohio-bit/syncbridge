@@ -1,0 +1,59 @@
+/* tokens.css — Design tokens (auth & shared components) */
+/* Font is loaded by index.css — no duplicate @import needed */
+
+:root {
+  /* Auth-specific surface colors */
+  --color-bg:           #0c0b09;
+  --color-surface-1:    #141210;
+  --color-surface-2:    #1c1a16;
+  --color-border:       rgba(255, 255, 255, 0.07);
+
+  /* Text */
+  --color-text-primary:   #f0ece4;
+  --color-text-secondary: #8a8070;
+
+  /* Accent (Gold — auth CTAs) */
+  --color-accent:      #7C3AED;
+  --color-accent-dim:  #6D28D9;
+
+  /* Status */
+  --color-status-pending:     #4A90D9;
+  --color-status-in-progress: #E8A020;
+  --color-status-done:        #52A876;
+  --color-status-error:       #D95F5F;
+
+  /* Typography — using Outfit (consistent with app) */
+  --font-ui:   'Outfit', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Type scale */
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+
+  /* Spacing (4px base) */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Easing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:   cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Duration */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 350ms;
+}

@@ -1,0 +1,91 @@
+spring:
+  application:
+    name: syncbridge
+
+  ai:
+    service-url: ${AI_SERVICE_URL:http://localhost:8000}
+    openai:
+      api-key: ${OPENAI_API_KEY:sk-placeholder}
+      chat:
+        options:
+          model: gpt-3.5-turbo # 또는 gpt-4o
+  profiles:
+    active: dev  # 기본값: 로컬 H2 개발 모드 / MySQL 로컬: local-mysql / 운영: prod
+
+---
+# ─────────────────────────────────────────────────────────────
+# [dev] 로컬 개발 환경 (H2 In-memory DB)
+# 실행: ./gradlew bootRun  (or IntelliJ Run)
+# ─────────────────────────────────────────────────────────────
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:syncbridge;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  sql:
+    init:
+      mode: always
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:dummy-key-for-local-test}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+jwt:
+  secret: ${JWT_SECRET:syncbridge-dev-secret-key-2024-must-be-at-least-256-bits-long}
+  expiration: 900000  # 15분
+  refresh-expiration-days: 7
+
+file:
+  upload-dir: ${FILE_UPLOAD_DIR:c:/syncbridge-uploads/}
+
+---
+# ─────────────────────────────────────────────────────────────
+# [local-mysql] 로컬 MySQL 연동 개발 환경 (Docker Compose 사용)
+# 실행: SPRING_PROFILES_ACTIVE=local-mysql ./gradlew bootRun
+# 사전 조건: docker-compose up -d 로 MySQL 컨테이너 실행 필요
+# ─────────────────────────────────────────────────────────────
+spring:
+  config:
+    activate:
+      on-profile: local-mysql
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:syncbridge}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME:sbuser}
+    password: ${DB_PASSWORD:3306}
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update  # 기존 데이터 유지하면서 스키마 변경 반영
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:dummy-key-for-local-mysql}
+
+jwt:
+  secret: ${JWT_SECRET:syncbridge-local-mysql-dev-secret-key-must-be-at-least-256-bits}
+  expiration: 900000  # 15분
+  refresh-expiration-days: 7

@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:syncbridge}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+jwt:
+  # 실제 운영 환경에서는 시스템 환경변수로 주입받습니다.
+  secret: ${JWT_SECRET:syncbridge_production_secret_key_which_must_be_at_least_256_bits_long_2026}
+  expiration: 86400000 # 24시간
+
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}

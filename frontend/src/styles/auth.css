@@ -1,0 +1,396 @@
+/* auth.css — Auth pages (Login & Signup)
+   Design language: Unified with Landing Page
+   Palette: Dark black (#050505) + Purple accent (#7C3AED) + Glassmorphism */
+
+:root {
+  --auth-bg:            #050505;
+  --auth-surface:       rgba(255, 255, 255, 0.03);
+  --auth-surface-2:     rgba(255, 255, 255, 0.06);
+  --auth-border:        rgba(255, 255, 255, 0.08);
+  --auth-text:          #f0f0f0;
+  --auth-text-muted:    rgba(255, 255, 255, 0.45);
+  --auth-accent:        #7C3AED;
+  --auth-accent-hover:  #6D28D9;
+  --auth-accent-glow:   rgba(124, 58, 237, 0.35);
+  --auth-accent-subtle: rgba(124, 58, 237, 0.12);
+  --auth-error:         #ef4444;
+}
+
+/* ──────────────────────────────────
+   FULL-PAGE WRAPPER
+────────────────────────────────── */
+.auth-page {
+  font-family: 'Outfit', -apple-system, sans-serif;
+  background-color: var(--auth-bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 48px 20px;
+  position: relative;
+  color: #fff;
+}
+
+/* Ambient glow — top-right purple */
+.auth-page::before {
+  content: '';
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--auth-accent-glow) 0%, transparent 65%);
+  filter: blur(80px);
+  opacity: 0.5;
+  z-index: 0;
+  top: -160px;
+  right: -120px;
+  pointer-events: none;
+}
+
+/* Ambient glow — bottom-left indigo (matching landing bento accent) */
+.auth-page::after {
+  content: '';
+  position: fixed;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 68%);
+  filter: blur(90px);
+  opacity: 0.4;
+  z-index: 0;
+  bottom: -120px;
+  left: -100px;
+  pointer-events: none;
+}
+
+/* Grain overlay — identical to landing */
+.auth-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.15;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Texture overlay — identical to landing */
+.auth-texture {
+  position: fixed;
+  inset: 0;
+  background-image: url('/assets/bg_texture.png');
+  background-size: cover;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Glow sphere — purple floating orb (matches landing hero-sphere concept) */
+.auth-glow-sphere {
+  position: fixed;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.2) 0%, rgba(99, 102, 241, 0.08) 40%, transparent 70%);
+  filter: blur(60px);
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: authSphereFloat 20s ease-in-out infinite alternate;
+}
+
+@keyframes authSphereFloat {
+  0%   { transform: translate(-50%, -50%) translate(-20px, -15px) scale(1); }
+  100% { transform: translate(-50%, -50%) translate(20px, 15px) scale(1.08); }
+}
+
+/* ──────────────────────────────────
+   CARD — Glassmorphism (matching landing glass-deep)
+────────────────────────────────── */
+.auth-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 44px;
+  background: rgba(255, 255, 255, 0.015);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 24px 80px rgba(0, 0, 0, 0.6);
+  border-radius: 32px;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  animation: authCardReveal 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  overflow: hidden;
+}
+
+/* Inner gradient sheen — matches glass-deep::before */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+  opacity: 0.5;
+  pointer-events: none;
+  border-radius: 32px;
+}
+
+@keyframes authCardReveal {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ──────────────────────────────────
+   HEADER
+────────────────────────────────── */
+.auth-header {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-logo {
+  display: inline-block;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  background: linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.5));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  color: var(--auth-text-muted);
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* ──────────────────────────────────
+   FORM
+────────────────────────────────── */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.input-block {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.input-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.01em;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: rgba(255, 255, 255, 0.3);
+  width: 17px;
+  height: 17px;
+  pointer-events: none;
+  transition: color 120ms;
+  flex-shrink: 0;
+}
+
+.auth-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 14px 14px 42px;
+  color: var(--auth-text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  outline: none;
+}
+
+.auth-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.auth-input:focus {
+  border-color: var(--auth-accent);
+  background: rgba(124, 58, 237, 0.04);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.auth-input:focus ~ .input-icon,
+.input-wrapper:focus-within .input-icon {
+  color: var(--auth-accent);
+}
+
+/* ──────────────────────────────────
+   ERROR BANNER
+────────────────────────────────── */
+.auth-error {
+  padding: 12px 14px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  color: var(--auth-error);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.4;
+  position: relative;
+  z-index: 1;
+}
+
+/* ──────────────────────────────────
+   SUBMIT BUTTON — Purple accent
+────────────────────────────────── */
+.auth-submit {
+  margin-top: 4px;
+  padding: 15px;
+  background: var(--auth-accent);
+  color: #fff;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-family: 'Outfit', sans-serif;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 4px 20px var(--auth-accent-glow);
+}
+
+.auth-submit:hover:not(:disabled) {
+  background: var(--auth-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px var(--auth-accent-glow);
+}
+
+.auth-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.auth-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ──────────────────────────────────
+   FOOTER LINK
+────────────────────────────────── */
+.auth-footer {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--auth-text-muted);
+  position: relative;
+  z-index: 1;
+}
+
+.auth-link {
+  color: var(--auth-text);
+  font-weight: 600;
+  margin-left: 5px;
+  transition: color 0.15s;
+}
+
+.auth-link:hover {
+  color: var(--auth-accent);
+}
+
+/* ──────────────────────────────────
+   ROLE SELECTOR (Signup) — Purple accent
+────────────────────────────────── */
+.role-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.role-option {
+  cursor: pointer;
+}
+
+.role-option input {
+  display: none;
+}
+
+.role-card {
+  padding: 12px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+  height: 100%;
+}
+
+.role-option input:checked + .role-card {
+  background: rgba(124, 58, 237, 0.08);
+  border-color: var(--auth-accent);
+  box-shadow: 0 0 0 1px var(--auth-accent), 0 4px 16px rgba(124, 58, 237, 0.15);
+}
+
+.role-option:hover .role-card {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+.role-card-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.role-card-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.01em;
+}
+
+.role-card-desc {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* ──────────────────────────────────
+   RESPONSIVE
+────────────────────────────────── */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 28px 22px;
+    gap: 22px;
+    border-radius: 24px;
+  }
+  .role-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

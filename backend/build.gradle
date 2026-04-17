@@ -1,0 +1,71 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.0'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'eclipse'
+}
+
+group = 'com.syncbridge'
+version = '0.0.1-SNAPSHOT'
+description = 'SyncBridge Backend'
+
+// Java argfile은 한글 경로를 파싱하지 못해 테스트 실행이 실패하므로 빌드 출력을 ASCII 경로로 변경
+layout.buildDirectory = file('C:/syncbridge-build')
+
+java {
+	sourceCompatibility = '17'
+}
+
+springBoot {
+	mainClass = 'com.syncbridge.SyncBridgeApplication'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+ext {
+	set('springAiVersion', "1.0.0-M4")
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	jvmArgs '-Dfile.encoding=UTF-8', '-Dsun.jnu.encoding=UTF-8', '-Djava.io.tmpdir=C:/tmp'
+	testLogging {
+		events 'passed', 'skipped', 'failed'
+	}
+}

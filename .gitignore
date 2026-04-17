@@ -1,0 +1,79 @@
+# [SyncBridge] .gitignore
+
+### OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.iws
+*.iml
+*.ipr
+.classpath
+.project
+.settings/
+.apt_generated/
+.factorypath/
+.springBeans/
+.sts4-cache/
+.nb-gradle/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+### Environment & Security (CRITICAL)
+.env
+.env.local
+.env.*.local
+*.secret
+*.key
+*.p12
+*.pem
+! .env.template
+
+### Logs & Temp
+*.log
+logs/
+tmp/
+temp/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+frontend/build.log
+frontend/dev.log
+frontend/tsc_output.txt
+frontend/*.log
+
+### Node.js (Frontend & Root)
+node_modules/
+dist/
+dist-ssr/
+.npm/
+.eslintcache
+
+### Java / Gradle (Backend)
+backend/.gradle/
+backend/build/
+backend/bin/
+backend/out/
+!**/src/main/**/build/
+!**/src/test/**/build/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+!gradle/wrapper/gradle-wrapper.jar
+
+### Python (ai-service)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.pytest_cache/
+
+### Docker
+docker-compose.override.yml
+
+### ETC
+/docs/
