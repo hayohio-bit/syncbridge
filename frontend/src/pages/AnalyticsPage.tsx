@@ -19,7 +19,7 @@ export const AnalyticsPage: React.FC = () => {
   const [error, setError]     = useState(false);
 
   useEffect(() => {
-    axiosInstance.get<{ success: boolean; data: AnalyticsData }>('/analytics/dashboard')
+    axiosInstance.get<{ success: boolean; data: AnalyticsData }>('/insights/dashboard')
       .then((res) => setData(res.data.data))
       .catch(() => setError(true))
       .finally(() => setIsLoading(false));

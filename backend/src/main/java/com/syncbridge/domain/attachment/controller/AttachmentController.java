@@ -16,7 +16,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Attachment", description = "첨부파일 관련 API")
 @RestController
 @RequestMapping("/api/attachments")
 @RequiredArgsConstructor
@@ -27,7 +30,8 @@ public class AttachmentController {
     private final UserRepository userRepository;
     private final AttachmentService attachmentService;
 
-    @PostMapping("/upload")
+    @Operation(summary = "파일 업로드", description = "새로운 첨부파일을 서버에 업로드합니다.")
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CommonResponse<AttachmentResponse>> uploadFile(
             @AuthenticationPrincipal Long userId,
             @RequestParam("file") MultipartFile file) {
@@ -51,6 +55,7 @@ public class AttachmentController {
         return ResponseEntity.ok(CommonResponse.success(AttachmentResponse.from(savedAttachment)));
     }
 
+    @Operation(summary = "파일 다운로드", description = "업로드된 첨부파일을 다운로드합니다.")
     @GetMapping("/{attachmentId}/download")
     public ResponseEntity<Resource> downloadFile(
             @PathVariable Long attachmentId,

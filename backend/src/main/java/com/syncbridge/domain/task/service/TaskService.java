@@ -119,19 +119,7 @@ public class TaskService {
     }
 
     public List<TaskListResponse> getTasksWithFilters(Long userId, String roleStr, TaskStatus status, Long projectId, String keyword) {
-        Role role;
-        try {
-            role = Role.valueOf(roleStr);
-        } catch (IllegalArgumentException e) {
-            throw new com.syncbridge.global.exception.CustomException(ErrorCode.INVALID_INPUT_VALUE, "유효하지 않은 직무입니다: " + roleStr);
-        }
-        List<Task> tasks;
-        if (role == Role.GENERAL || role == Role.PLANNER) {
-            tasks = taskRepository.findByRequesterIdWithFilters(userId, status, projectId, keyword);
-        } else {
-            tasks = taskRepository.findByAssigneeIdWithFilters(userId, status, projectId, keyword);
-        }
-
+        List<Task> tasks = taskRepository.findByUserIdInvolvedWithFilters(userId, status, projectId, keyword);
         return tasks.stream().map(TaskListResponse::new).collect(Collectors.toList());
     }
 

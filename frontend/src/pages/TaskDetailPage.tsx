@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useAuthStore } from '../store/authStore';
 import { useParams, useNavigate } from 'react-router-dom';
 import { tasksApi } from '../api/tasks';
 import { attachmentsApi } from '../api/attachments';
@@ -21,6 +22,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
 export const TaskDetailPage: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
 
   const [task, setTask] = useState<TaskDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,7 +125,7 @@ export const TaskDetailPage: React.FC = () => {
     );
   }
 
-  if (!task) return null;
+  const isRequester = user?.userId === task.requesterId;
 
   return (
     <MotionView className="detail-container">
@@ -153,7 +155,7 @@ export const TaskDetailPage: React.FC = () => {
                 저장
               </button>
             </div>
-          ) : (
+          ) : isRequester ? (
             <div className="action-group">
               <button className="btn-icon-label" onClick={() => setIsEditing(true)}>
                 <Edit3 size={16} /> 수정하기
@@ -161,6 +163,10 @@ export const TaskDetailPage: React.FC = () => {
               <button className="btn-icon-label delete" onClick={() => setShowDeleteConfirm(true)}>
                 <Trash2 size={16} /> 삭제
               </button>
+            </div>
+          ) : (
+            <div className="action-group">
+              <span className="info-badge">요청자만 수정/삭제 가능</span>
             </div>
           )}
         </div>
@@ -826,6 +832,14 @@ export const TaskDetailPage: React.FC = () => {
         @media (max-width: 1024px) {
           .detail-main-layout { grid-template-columns: 1fr; }
           .detail-sidebar { order: -1; }
+        }
+        .info-badge {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+          background: rgba(255,255,255,0.05);
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-weight: 600;
         }
       `}</style>
     </MotionView>

@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
+from langchain_groq import ChatGroq
 from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
 from prompts.jargon_prompt import jargon_few_shot_prompt
@@ -13,8 +14,10 @@ class JargonTranslation(BaseModel):
     businessImpact: str = Field(description="이 용어가 프로젝트 일정이나 협업에 미치는 영향")
 
 def get_llm():
-    # Anthropic 우선 순위 (계획서 준수), 없으면 OpenAI
-    if os.getenv("ANTHROPIC_API_KEY"):
+    # Groq(Llama 3) 우선 순위, 없으면 Anthropic, 그 다음 OpenAI
+    if os.getenv("GROQ_API_KEY"):
+        return ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+    elif os.getenv("ANTHROPIC_API_KEY"):
         return ChatAnthropic(model="claude-3-haiku-20240307", temperature=0)
     else:
         return ChatOpenAI(model="gpt-4o-mini", temperature=0)

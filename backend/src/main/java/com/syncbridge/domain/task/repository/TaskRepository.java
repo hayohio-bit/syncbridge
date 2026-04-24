@@ -32,4 +32,14 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                                            @Param("status") TaskStatus status, 
                                            @Param("projectId") Long projectId,
                                            @Param("keyword") String keyword);
+
+    @Query("SELECT t FROM Task t LEFT JOIN FETCH t.project LEFT JOIN FETCH t.requester LEFT JOIN FETCH t.assignee " +
+           "WHERE (t.requester.id = :userId OR t.assignee.id = :userId) AND t.isDeleted = false " +
+           "AND (:status IS NULL OR t.status = :status) " +
+           "AND (:projectId IS NULL OR t.project.id = :projectId) " +
+           "AND (:keyword IS NULL OR t.title LIKE %:keyword% OR t.content LIKE %:keyword%)")
+    List<Task> findByUserIdInvolvedWithFilters(@Param("userId") Long userId, 
+                                               @Param("status") TaskStatus status, 
+                                               @Param("projectId") Long projectId,
+                                               @Param("keyword") String keyword);
 }

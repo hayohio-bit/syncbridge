@@ -3,6 +3,7 @@ uvicorn
 langchain
 langchain-openai
 langchain-anthropic
+langchain-groq
 langchain-community
 python-dotenv
 pydantic
