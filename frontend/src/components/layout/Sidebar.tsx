@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { authApi } from '../../api/auth';
+import { ROLE_CONFIGS } from '../../config/roleConfig';
 
 const ROLE_LABELS: Record<string, string> = {
   GENERAL:  '일반 사무직',
@@ -37,12 +38,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     navigate('/login');
   };
 
-  const menuItems = [
-    { to: '/dashboard',   label: '대시보드',  icon: LayoutDashboard },
-    { to: '/create-task', label: '업무 요청',  icon: FilePlus2 },
-    { to: '/projects',    label: '프로젝트',   icon: FolderKanban },
-    { to: '/analytics',   label: '데이터 분석', icon: BarChart3 },
-  ];
+  const menuItems = useMemo(() => {
+    const allItems = [
+      { to: '/dashboard',   label: '대시보드',  icon: LayoutDashboard },
+      { to: '/create-task', label: '업무 요청',  icon: FilePlus2 },
+      { to: '/projects',    label: '프로젝트',   icon: FolderKanban },
+      { to: '/analytics',   label: '데이터 분석', icon: BarChart3 },
+    ];
+
+    if (!user?.role) return allItems;
+
+    const allowedMenus = ROLE_CONFIGS[user.role]?.menus || [];
+    return allItems.filter(item => allowedMenus.includes(item.label));
+  }, [user?.role]);
 
   const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
 

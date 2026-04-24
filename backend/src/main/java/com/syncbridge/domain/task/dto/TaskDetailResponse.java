@@ -17,7 +17,9 @@ public class TaskDetailResponse {
     private String content;
     private String purpose;
     private String target;
+    private Long requesterId;
     private String requesterName;
+    private Long assigneeId;
     private String assigneeName;
     private TaskStatus status;
     private String templateType;
@@ -32,7 +34,9 @@ public class TaskDetailResponse {
         this.content = task.getContent();
         this.purpose = task.getPurpose();
         this.target = task.getTarget();
+        this.requesterId = task.getRequester().getId();
         this.requesterName = task.getRequester().getName();
+        this.assigneeId = task.getAssignee() != null ? task.getAssignee().getId() : null;
         this.assigneeName = task.getAssignee() != null ? task.getAssignee().getName() : null;
         this.status = task.getStatus();
         this.templateType = task.getTemplateType() != null ? task.getTemplateType().name() : null;

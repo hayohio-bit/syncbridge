@@ -33,7 +33,9 @@ export type TaskTemplate = 'BUG_REPORT' | 'FEATURE_REQUEST' | 'UI_FIX' | 'DESIGN
 export interface TaskListDto {
   taskId: number;
   title: string;
+  requesterId: number;
   requesterName: string;
+  assigneeId: number | null;
   assigneeName: string | null;
   status: TaskStatus;
   templateType: TaskTemplate;
@@ -55,7 +57,9 @@ export interface TaskDetailDto {
   content: string;
   purpose: string;
   target: string;
+  requesterId: number;
   requesterName: string;
+  assigneeId: number | null;
   assigneeName: string | null;
   status: TaskStatus;
   templateType: TaskTemplate;

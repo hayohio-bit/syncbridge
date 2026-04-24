@@ -4,12 +4,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { tasksApi } from '../api/tasks';
 import { attachmentsApi } from '../api/attachments';
 import { JargonHighlighter } from '../components/JargonHighlighter';
+import { ROLE_CONFIGS } from '../config/roleConfig';
 import type { TaskDetailDto, TaskStatus, Attachment } from '../types';
 import { 
   ArrowLeft, Trash2, FileText, AlertCircle,
   Tag, 
   Image as ImageIcon, Paperclip, Edit3, Check, Loader2,
-  ChevronDown, Download, Clock, Sparkles, Zap
+  ChevronDown, Download, Clock, Sparkles, Zap, Lightbulb
 } from 'lucide-react';
 import { MotionView, MotionItem } from '../components/layout/MotionView';
 
@@ -23,6 +24,10 @@ export const TaskDetailPage: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  
+  const roleConfig = useMemo(() => {
+    return user?.role ? ROLE_CONFIGS[user.role] : ROLE_CONFIGS.GENERAL;
+  }, [user?.role]);
 
   const [task, setTask] = useState<TaskDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,6 +121,11 @@ export const TaskDetailPage: React.FC = () => {
     [task]
   );
 
+  const workflowHint = useMemo(() => {
+    if (!task) return null;
+    return roleConfig.priorityWorkflowStep[task.status];
+  }, [task, roleConfig]);
+
   if (loading) {
     return (
       <div className="loading-state">
@@ -125,7 +135,42 @@ export const TaskDetailPage: React.FC = () => {
     );
   }
 
-  const isRequester = user?.userId === task.requesterId;
+  const isRequester = user?.userId === task?.requesterId;
+  const isDesignerInProgress = user?.role === 'DESIGNER' && task?.status === 'IN_PROGRESS';
+
+  const renderAttachments = () => (
+    task?.attachments && task.attachments.length > 0 && (
+      <MotionItem index={2} className={`glass-card attachment-card ${isDesignerInProgress ? 'highlighted' : ''}`}>
+        <div className="section-header">
+          <Paperclip size={18} />
+          <h3>첨부 파일 ({task.attachments.length})</h3>
+        </div>
+        <div className="attachment-grid">
+          {task.attachments.map((att: Attachment) => (
+              <div key={att.id} className="attachment-tile-wrapper">
+                <div className="attachment-tile" onClick={() => handleDownload(att.id, att.originalFileName)}>
+                  <div className="tile-icon">
+                    {att.contentType.startsWith('image/') ? <ImageIcon size={20} /> : <FileText size={20} />}
+                  </div>
+                  <div className="tile-info">
+                    <span className="file-name">{att.originalFileName}</span>
+                    <span className="file-size">{(att.fileSize / 1024 / 1024).toFixed(2)} MB</span>
+                  </div>
+                  <Download className="download-icon" size={16} />
+                </div>
+                {att.contentType.startsWith('image/') && (
+                  <div className="image-preview-mini">
+                    <img src={att.fileUrl} alt={att.originalFileName} />
+                  </div>
+                )}
+              </div>
+          ))}
+        </div>
+      </MotionItem>
+    )
+  );
+
+  if (!task) return null;
 
   return (
     <MotionView className="detail-container">
@@ -172,9 +217,22 @@ export const TaskDetailPage: React.FC = () => {
         </div>
       </div>
 
+      {/* ── Workflow Hint Callout ── */}
+      {workflowHint && (
+        <div className="workflow-callout">
+          <Lightbulb size={18} className="hint-icon-glow" />
+          <div className="callout-text">
+            <strong>{user?.role} 가이드:</strong> {workflowHint}
+          </div>
+        </div>
+      )}
+
       <div className="detail-main-layout">
         {/* ── Left Content ── */}
         <div className="detail-content-area">
+          {/* Workflow Adaptation: Move attachments up for Designers */}
+          {isDesignerInProgress && renderAttachments()}
+
           <MotionItem index={1} className="glass-card main-info-card">
             <div className="status-selector-wrapper">
               <div className="status-badge" style={{ color: status.color, background: status.bg }}>
@@ -222,35 +280,7 @@ export const TaskDetailPage: React.FC = () => {
             </div>
           </MotionItem>
 
-          {task.attachments && task.attachments.length > 0 && (
-            <MotionItem index={2} className="glass-card attachment-card">
-              <div className="section-header">
-                <Paperclip size={18} />
-                <h3>첨부 파일 ({task.attachments.length})</h3>
-              </div>
-              <div className="attachment-grid">
-                {task.attachments.map((att: Attachment) => (
-                    <div key={att.id} className="attachment-tile-wrapper">
-                      <div className="attachment-tile" onClick={() => handleDownload(att.id, att.originalFileName)}>
-                        <div className="tile-icon">
-                          {att.contentType.startsWith('image/') ? <ImageIcon size={20} /> : <FileText size={20} />}
-                        </div>
-                        <div className="tile-info">
-                          <span className="file-name">{att.originalFileName}</span>
-                          <span className="file-size">{(att.fileSize / 1024 / 1024).toFixed(2)} MB</span>
-                        </div>
-                        <Download className="download-icon" size={16} />
-                      </div>
-                      {att.contentType.startsWith('image/') && (
-                        <div className="image-preview-mini">
-                          <img src={att.fileUrl} alt={att.originalFileName} />
-                        </div>
-                      )}
-                    </div>
-                ))}
-              </div>
-            </MotionItem>
-          )}
+          {!isDesignerInProgress && renderAttachments()}
         </div>
 
         {/* ── Right Sidebar ── */}
@@ -375,6 +405,46 @@ export const TaskDetailPage: React.FC = () => {
           padding: 40px 0;
           max-width: 1200px;
           margin: 0 auto;
+        }
+
+        .workflow-callout {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 16px 24px;
+          background: rgba(99, 102, 241, 0.08);
+          border: 1px solid rgba(99, 102, 241, 0.2);
+          border-radius: 12px;
+          margin-bottom: 32px;
+          animation: slideInDown 0.5s ease-out;
+        }
+
+        @keyframes slideInDown {
+          from { transform: translateY(-20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+
+        .hint-icon-glow {
+          color: var(--primary);
+          filter: drop-shadow(0 0 5px var(--primary-glow));
+        }
+
+        .callout-text {
+          font-size: 0.95rem;
+          color: var(--text-main);
+        }
+
+        .callout-text strong {
+          color: var(--primary);
+          margin-right: 8px;
+        }
+
+        .attachment-card.highlighted {
+          border-color: var(--primary);
+          box-shadow: 0 0 20px var(--primary-subtle);
+          background: rgba(99, 102, 241, 0.03);
+          transform: scale(1.02);
+          transition: all 0.3s ease;
         }
 
         .detail-header {
