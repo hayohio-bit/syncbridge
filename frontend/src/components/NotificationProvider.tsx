@@ -3,12 +3,14 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
+import { useUIStore } from '../store/uiStore';
 import { Bell, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, token } = useAuthStore();
   const { notifications, addNotification, removeNotification } = useNotificationStore();
+  const triggerTaskUpdate = useUIStore((s) => s.triggerTaskUpdate);
   const stompClient = useRef<Client | null>(null);
   const navigate = useNavigate();
 
@@ -36,10 +38,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     client.onConnect = (frame) => {
       console.log('Connected to WebSocket:', frame);
-      
-      // 사용자 전용 알림 채널 구독
-      // 백엔드 NotificationService.sendNotification -> /user/{userId}/queue/notifications
-      // 클라이언트는 /user/queue/notifications 구독
+
+      // 1. 사용자 전용 알림 채널 구독
       client.subscribe('/user/queue/notifications', (message) => {
         try {
           const body = JSON.parse(message.body);
@@ -47,6 +47,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         } catch (err) {
           console.error('Failed to parse notification message', err);
         }
+      });
+
+      // 2. 업무 변경 브로드캐스트 채널 구독
+      client.subscribe('/topic/tasks', (message) => {
+        console.log('Task update received:', message.body);
+        triggerTaskUpdate();
       });
     };
 
@@ -60,7 +66,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => {
       client.deactivate();
     };
-  }, [user, token, addNotification]);
+  }, [user, token, addNotification, triggerTaskUpdate]);
 
   const handleNotificationClick = (taskId: number, id: string) => {
     navigate(`/tasks/${taskId}`);

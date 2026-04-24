@@ -97,6 +97,8 @@ public class TaskService {
             );
         }
 
+        notificationService.broadcastTaskUpdate("CREATED", savedTask.getId());
+
         // 첨부파일 연관관계 설정
         if (request.getAttachmentIds() != null && !request.getAttachmentIds().isEmpty()) {
             List<com.syncbridge.domain.attachment.entity.Attachment> attachments =
@@ -170,6 +172,7 @@ public class TaskService {
                                 .build()
                 );
             }
+            notificationService.broadcastTaskUpdate("STATUS_UPDATED", task.getId());
         }
 
         return new TaskDetailResponse(task);
@@ -190,5 +193,6 @@ public class TaskService {
 
         task.getAttachments().forEach(attachment -> attachment.softDelete());
         task.softDelete();
+        notificationService.broadcastTaskUpdate("DELETED", taskId);
     }
 }

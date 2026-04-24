@@ -8,6 +8,7 @@ import { TaskCreatePage } from './pages/TaskCreatePage';
 import { TaskDetailPage } from './pages/TaskDetailPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { AdminConfigPage } from './pages/AdminConfigPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 
@@ -58,6 +59,12 @@ export const App: React.FC = () => {
           <Route path="/analytics" element={
             <ProtectedRoute>
               <Layout><AnalyticsPage /></Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/configs" element={
+            <ProtectedRoute>
+              <Layout><AdminConfigPage /></Layout>
             </ProtectedRoute>
           } />
 

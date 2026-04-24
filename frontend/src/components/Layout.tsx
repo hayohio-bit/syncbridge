@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useConfigStore } from '../store/configStore';
 import { useThemeStore } from '../store/themeStore';
 import { Sidebar } from './layout/Sidebar';
 import { Sun, Moon, Menu } from 'lucide-react';
@@ -23,9 +24,16 @@ const PAGE_TITLES: Record<string, string> = {
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const user        = useAuthStore((s) => s.user);
   const theme       = useThemeStore((s) => s.theme);
+  const loadConfig  = useConfigStore((s) => s.loadConfig);
   const toggleTheme = useThemeStore((s) => s.toggleTheme);
   const location    = useLocation();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (user?.role) {
+      loadConfig(user.role);
+    }
+  }, [user?.role, loadConfig]);
 
   const getPageTitle = () => {
     if (location.pathname.startsWith('/tasks/')) return '업무 상세 정보';
@@ -130,3 +138,5 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     </div>
   );
 };
+
+export default Layout;

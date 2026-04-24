@@ -1,6 +1,7 @@
 package com.syncbridge.global.config;
 
 import com.syncbridge.domain.attachment.repository.AttachmentRepository;
+import com.syncbridge.domain.config.service.RoleConfigService;
 import com.syncbridge.domain.jargon.entity.JargonHit;
 import com.syncbridge.domain.jargon.entity.JargonTerm;
 import com.syncbridge.domain.jargon.repository.JargonHitRepository;
@@ -21,7 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @Profile({"dev", "local-mysql"})
@@ -34,12 +37,16 @@ public class DataInitializer implements CommandLineRunner {
     private final JargonTermRepository jargonTermRepository;
     private final JargonHitRepository jargonHitRepository;
     private final AttachmentRepository attachmentRepository;
+    private final RoleConfigService roleConfigService;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void run(String... args) {
         if (userRepository.count() > 0) return;
+
+        // ── Role Configs ───────────────────────────────────────
+        initializeRoleConfigs();
 
         // ── Users ──────────────────────────────────────────────
         User general = userRepository.save(User.builder()
@@ -92,7 +99,6 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
 
         // ── Tasks ──────────────────────────────────────────────
-        // Project 1: 웹사이트 리뉴얼
         Task t1 = taskRepository.save(Task.builder()
                 .title("메인 배너 와이어프레임 검토")
                 .content("랜딩 페이지의 핵심인 메인 배너 영역의 **와이어프레임**이 완성되었습니다. 기획 의도와 맞는지 **요구사항 명세서**와 대조 부탁드립니다.")
@@ -111,7 +117,6 @@ public class DataInitializer implements CommandLineRunner {
                 .templateType(TaskTemplate.GENERAL).purpose("운영 안정성 강화").target("운영팀")
                 .requester(general).assignee(backend).project(p1).status(TaskStatus.TODO).build());
 
-        // Project 2: 사내 메신저 기능 추가
         Task t4 = taskRepository.save(Task.builder()
                 .title("인수 테스트 시나리오 작성")
                 .content("메신저 채팅 기능 개발이 완료 단계입니다. 출시 전 **인수 테스트**를 위해 사용자 관점의 **유저 스토리** 기반 시나리오를 작성해주세요.")
@@ -124,32 +129,12 @@ public class DataInitializer implements CommandLineRunner {
                 .templateType(TaskTemplate.GENERAL).purpose("QA 환경 구축")
                 .requester(planner).assignee(backend).project(p2).status(TaskStatus.TODO).build());
 
-        // Project 3: 인프라 클라우드 이전
-        Task t6 = taskRepository.save(Task.builder()
-                .title("레거시 DB 마이그레이션")
-                .content("온프레미스 장비에 있는 10년 된 **레거시** 데이터를 클라우드로 옮기는 **마이그레이션** 스크립트 작성이 필요합니다.")
-                .templateType(TaskTemplate.FEATURE_REQUEST).purpose("인프라 현대화").target("전산실")
-                .requester(backend).assignee(backend).project(p3).status(TaskStatus.IN_PROGRESS).build());
-
-        Task t7 = taskRepository.save(Task.builder()
-                .title("CI/CD 파이프라인 자동화 구축")
-                .content("코드 푸시 시 자동으로 테스트와 배포가 이뤄지도록 **CI/CD**를 구축하여 **기술 부채**를 줄이고 배포 병목을 해소합시다.")
-                .templateType(TaskTemplate.FEATURE_REQUEST).purpose("배포 자동화 및 안정성 향상").target("개발팀 전체")
-                .requester(frontend).assignee(backend).project(p3).status(TaskStatus.TODO).build());
-
-        // Project 4: AI 챗봇 고도화
-        Task t8 = taskRepository.save(Task.builder()
-                .title("도메인 지식 기반 챗봇 학습 데이터")
-                .content("상반기 금융 **도메인** 데이터를 기반으로 챗봇 엔진을 학습시킵니다. 데이터의 정합성 확인이 필수입니다.")
-                .templateType(TaskTemplate.FEATURE_REQUEST).purpose("응답 정확도 향상").target("고객센터")
-                .requester(general).assignee(backend).project(p4).status(TaskStatus.IN_PROGRESS).build());
-
-        // ── Attachments (Generated Assets) ────────────────────
+        // ── Attachments ───────────────────────────────────────
         saveAttachment(t1, designer, "wireframe.png", "/uploads/mock/wireframe.png");
         saveAttachment(t3, backend, "architecture.png", "/uploads/mock/architecture.png");
         saveAttachment(t4, designer, "ui-design.png", "/uploads/mock/ui-design.png");
 
-        // ── JargonHits (for analytics charts) ─────────────────
+        // ── JargonHits ────────────────────────────────────────
         List<String> hotKeywords = List.of("API", "CI/CD", "리팩토링", "스프린트", "배포",
                 "QA", "스테이징 서버", "레거시", "마이그레이션", "기술 부채", "페이로드", "롤백", "와이어프레임");
 
@@ -161,6 +146,149 @@ public class DataInitializer implements CommandLineRunner {
                 createHits(term, Role.FRONTEND,  frontend.getId(), keyword.equals("페이로드") ? 14 : 6);
                 createHits(term, Role.BACKEND,   backend.getId(),  keyword.equals("CI/CD") ? 20 : 10);
             });
+        }
+    }
+
+    private void initializeRoleConfigs() {
+        Map<Role, Map<String, Object>> configs = new HashMap<>();
+
+        // GENERAL
+        Map<String, Object> generalConfig = new HashMap<>();
+        generalConfig.put("menus", List.of("대시보드", "업무 요청"));
+        generalConfig.put("defaultDashboardView", "list");
+        generalConfig.put("visibleStats", List.of("total", "todo", "done"));
+        generalConfig.put("dashboardLayout", List.of(
+            Map.of("widget", "greeting", "order", 1),
+            Map.of("widget", "stats", "order", 2),
+            Map.of("widget", "my-summary", "order", 3),
+            Map.of("widget", "toolbar", "order", 4),
+            Map.of("widget", "main-view", "order", 5)
+        ));
+        generalConfig.put("priorityWorkflowStep", Map.of(
+            "TODO", "요청 내용 확인",
+            "IN_PROGRESS", "진행 상태 모니터링",
+            "DONE", "최종 결과 검토"
+        ));
+        generalConfig.put("quickActions", List.of(
+            Map.of("label", "업무 요청", "iconName", "FilePlus2", "path", "/create-task"),
+            Map.of("label", "내 요청 현황", "iconName", "ClipboardList", "path", "/dashboard")
+        ));
+        generalConfig.put("dashboardWidgets", List.of("greeting", "stats", "my-summary", "toolbar", "main-view"));
+        generalConfig.put("defaultTemplateType", "GENERAL");
+        generalConfig.put("contextGreeting", "오늘 요청하실 업무가 있으신가요?");
+        generalConfig.put("emptyStateMessage", "새로운 업무를 요청하여 팀원들과 협업을 시작해보세요.");
+        configs.put(Role.GENERAL, generalConfig);
+
+        // PLANNER
+        Map<String, Object> plannerConfig = new HashMap<>();
+        plannerConfig.put("menus", List.of("대시보드", "업무 요청", "프로젝트", "데이터 분석"));
+        plannerConfig.put("defaultDashboardView", "list");
+        plannerConfig.put("visibleStats", List.of("total", "todo", "inProgress", "done"));
+        plannerConfig.put("dashboardLayout", List.of(
+            Map.of("widget", "greeting", "order", 1),
+            Map.of("widget", "stats", "order", 2),
+            Map.of("widget", "team-progress", "order", 3),
+            Map.of("widget", "my-summary", "order", 4),
+            Map.of("widget", "toolbar", "order", 5),
+            Map.of("widget", "main-view", "order", 6)
+        ));
+        plannerConfig.put("priorityWorkflowStep", Map.of(
+            "TODO", "기획안 상세화",
+            "IN_PROGRESS", "일정 관리",
+            "DONE", "데이터 분석 반영"
+        ));
+        plannerConfig.put("quickActions", List.of(
+            Map.of("label", "업무 요청", "iconName", "FilePlus2", "path", "/create-task"),
+            Map.of("label", "프로젝트", "iconName", "FolderKanban", "path", "/projects"),
+            Map.of("label", "데이터 분석", "iconName", "BarChart3", "path", "/analytics")
+        ));
+        plannerConfig.put("dashboardWidgets", List.of("greeting", "stats", "team-progress", "my-summary", "toolbar", "main-view"));
+        plannerConfig.put("defaultTemplateType", "FEATURE_REQUEST");
+        plannerConfig.put("contextGreeting", "프로젝트 진행 상황을 확인하세요.");
+        plannerConfig.put("emptyStateMessage", "기획을 시작해보세요. 프로젝트별 진행률을 한눈에 확인할 수 있습니다.");
+        configs.put(Role.PLANNER, plannerConfig);
+
+        // DESIGNER
+        Map<String, Object> designerConfig = new HashMap<>();
+        designerConfig.put("menus", List.of("대시보드", "업무 요청", "프로젝트"));
+        designerConfig.put("defaultDashboardView", "kanban");
+        designerConfig.put("visibleStats", List.of("total", "inProgress", "done"));
+        designerConfig.put("dashboardLayout", List.of(
+            Map.of("widget", "greeting", "order", 1),
+            Map.of("widget", "stats", "order", 2),
+            Map.of("widget", "my-tasks", "order", 3),
+            Map.of("widget", "toolbar", "order", 4),
+            Map.of("widget", "main-view", "order", 5)
+        ));
+        designerConfig.put("priorityWorkflowStep", Map.of(
+            "TODO", "디자인 가이드 확인",
+            "IN_PROGRESS", "에셋 업로드",
+            "DONE", "피드백 반영 확인"
+        ));
+        designerConfig.put("quickActions", List.of(
+            Map.of("label", "업무 요청", "iconName", "FilePlus2", "path", "/create-task"),
+            Map.of("label", "프로젝트", "iconName", "FolderKanban", "path", "/projects")
+        ));
+        designerConfig.put("dashboardWidgets", List.of("greeting", "stats", "my-tasks", "toolbar", "main-view"));
+        designerConfig.put("defaultTemplateType", "DESIGN_REQUEST");
+        designerConfig.put("contextGreeting", "배정된 디자인 작업을 확인하세요.");
+        designerConfig.put("emptyStateMessage", "현재 배정된 디자인 업무가 없습니다. 새로운 작업이 오면 알려드릴게요.");
+        configs.put(Role.DESIGNER, designerConfig);
+
+        // FRONTEND
+        Map<String, Object> frontendConfig = new HashMap<>();
+        frontendConfig.put("menus", List.of("대시보드", "프로젝트"));
+        frontendConfig.put("defaultDashboardView", "kanban");
+        frontendConfig.put("visibleStats", List.of("total", "todo", "inProgress"));
+        frontendConfig.put("dashboardLayout", List.of(
+            Map.of("widget", "greeting", "order", 1),
+            Map.of("widget", "my-tasks", "order", 2),
+            Map.of("widget", "main-view", "order", 3),
+            Map.of("widget", "stats", "order", 4),
+            Map.of("widget", "toolbar", "order", 5)
+        ));
+        frontendConfig.put("priorityWorkflowStep", Map.of(
+            "TODO", "UI 컴포넌트 설계",
+            "IN_PROGRESS", "API 연동 테스트",
+            "DONE", "버그 수정 완료"
+        ));
+        frontendConfig.put("quickActions", List.of(
+            Map.of("label", "프로젝트", "iconName", "FolderKanban", "path", "/projects")
+        ));
+        frontendConfig.put("dashboardWidgets", List.of("greeting", "my-tasks", "main-view", "stats", "toolbar"));
+        frontendConfig.put("defaultTemplateType", "UI_FIX");
+        frontendConfig.put("contextGreeting", "진행 중인 프론트엔드 이슈를 확인하세요.");
+        frontendConfig.put("emptyStateMessage", "배정된 프론트엔드 작업이 없습니다. 여유로운 시간을 활용해보세요!");
+        configs.put(Role.FRONTEND, frontendConfig);
+
+        // BACKEND
+        Map<String, Object> backendConfig = new HashMap<>();
+        backendConfig.put("menus", List.of("대시보드", "프로젝트"));
+        backendConfig.put("defaultDashboardView", "kanban");
+        backendConfig.put("visibleStats", List.of("total", "todo", "inProgress"));
+        backendConfig.put("dashboardLayout", List.of(
+            Map.of("widget", "greeting", "order", 1),
+            Map.of("widget", "my-tasks", "order", 2),
+            Map.of("widget", "main-view", "order", 3),
+            Map.of("widget", "stats", "order", 4),
+            Map.of("widget", "toolbar", "order", 5)
+        ));
+        backendConfig.put("priorityWorkflowStep", Map.of(
+            "TODO", "API 명세 확인",
+            "IN_PROGRESS", "데이터베이스 마이그레이션",
+            "DONE", "성능 최적화 확인"
+        ));
+        backendConfig.put("quickActions", List.of(
+            Map.of("label", "프로젝트", "iconName", "FolderKanban", "path", "/projects")
+        ));
+        backendConfig.put("dashboardWidgets", List.of("greeting", "my-tasks", "main-view", "stats", "toolbar"));
+        backendConfig.put("defaultTemplateType", "BUG_REPORT");
+        backendConfig.put("contextGreeting", "대기 중인 백엔드 작업을 확인하세요.");
+        backendConfig.put("emptyStateMessage", "배정된 백엔드 작업이 없습니다. 코드 리뷰나 기술 부채 정리를 해보세요!");
+        configs.put(Role.BACKEND, backendConfig);
+
+        for (Map.Entry<Role, Map<String, Object>> entry : configs.entrySet()) {
+            roleConfigService.updateConfig(entry.getKey(), entry.getValue());
         }
     }
 

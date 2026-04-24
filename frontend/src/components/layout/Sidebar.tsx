@@ -9,6 +9,7 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { useConfigStore } from '../../store/configStore';
 import { authApi } from '../../api/auth';
 import { ROLE_CONFIGS } from '../../config/roleConfig';
 
@@ -30,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const user         = useAuthStore((s) => s.user);
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const logout       = useAuthStore((s) => s.logout);
+  const dynamicConfig = useConfigStore((s) => s.roleConfig);
   const navigate     = useNavigate();
 
   const handleLogout = async () => {
@@ -48,9 +50,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
     if (!user?.role) return allItems;
 
-    const allowedMenus = ROLE_CONFIGS[user.role]?.menus || [];
+    const roleConfig = dynamicConfig || ROLE_CONFIGS[user.role] || ROLE_CONFIGS.GENERAL;
+    const allowedMenus = roleConfig.menus || [];
     return allItems.filter(item => allowedMenus.includes(item.label));
-  }, [user?.role]);
+  }, [user, dynamicConfig]);
 
   const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
 

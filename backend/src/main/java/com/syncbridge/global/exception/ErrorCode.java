@@ -23,6 +23,7 @@ public enum ErrorCode {
     TASK_NOT_FOUND(HttpStatus.NOT_FOUND, "업무 티켓을 찾을 수 없습니다."),
     JARGON_NOT_FOUND(HttpStatus.NOT_FOUND, "용어 번역을 찾을 수 없습니다."),
     FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "파일을 찾을 수 없습니다."),
+    CONFIG_NOT_FOUND(HttpStatus.NOT_FOUND, "설정 정보를 찾을 수 없습니다."),
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "허용되지 않는 파일 형식입니다.");
 
     private final HttpStatus status;

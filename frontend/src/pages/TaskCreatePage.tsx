@@ -10,6 +10,9 @@ import {
   ChevronDown, Search, Loader2, AlertCircle, Info, CheckCircle2 
 } from 'lucide-react';
 import { MotionView, MotionItem } from '../components/layout/MotionView';
+import { useAuthStore } from '../store/authStore';
+import { useConfigStore } from '../store/configStore';
+import { ROLE_CONFIGS } from '../config/roleConfig';
 
 const TEMPLATE_TYPES = [
   { value: 'DESIGN_REQUEST', label: '🎨 디자인 요청' },
@@ -21,13 +24,18 @@ const TEMPLATE_TYPES = [
 
 export const TaskCreatePage: React.FC = () => {
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const dynamicConfig = useConfigStore((s) => s.roleConfig);
+  const roleConfig = dynamicConfig || (user?.role ? ROLE_CONFIGS[user.role] : ROLE_CONFIGS.GENERAL);
+  const isDevRole = user?.role ? ['DESIGNER', 'FRONTEND', 'BACKEND'].includes(user.role) : false;
 
   // Form States
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [purpose, setPurpose] = useState('');
   const [target, setTarget] = useState('');
-  const [templateType, setTemplateType] = useState('DESIGN_REQUEST');
+  const [templateType, setTemplateType] = useState(roleConfig.defaultTemplateType);
+  const [showExtraFields, setShowExtraFields] = useState(!isDevRole);
   const [projectId, setProjectId] = useState<number | ''>('');
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -208,26 +216,39 @@ export const TaskCreatePage: React.FC = () => {
             />
           </div>
 
-          <div className="grid-2" style={{ marginTop: '24px' }}>
-            <div className="field-group">
-              <label>요청 목적</label>
-              <input 
-                className="premium-input" 
-                placeholder="어떤 배경에서 요청되었나요?" 
-                value={purpose}
-                onChange={(e) => setPurpose(e.target.value)}
-              />
+          {/* Purpose/Target: collapsible for developer roles */}
+          {isDevRole && !showExtraFields ? (
+            <button
+              type="button"
+              className="toggle-extra-btn"
+              onClick={() => setShowExtraFields(true)}
+              style={{ marginTop: '24px' }}
+            >
+              <ChevronDown size={16} />
+              <span>요청 목적 & 타겟 입력 (선택)</span>
+            </button>
+          ) : (
+            <div className="grid-2" style={{ marginTop: '24px' }}>
+              <div className="field-group">
+                <label>요청 목적</label>
+                <input 
+                  className="premium-input" 
+                  placeholder="어떤 배경에서 요청되었나요?" 
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                />
+              </div>
+              <div className="field-group">
+                <label>타겟 사용자</label>
+                <input 
+                  className="premium-input" 
+                  placeholder="누구를 위한 기능인가요?" 
+                  value={target}
+                  onChange={(e) => setTarget(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="field-group">
-              <label>타겟 사용자</label>
-              <input 
-                className="premium-input" 
-                placeholder="누구를 위한 기능인가요?" 
-                value={target}
-                onChange={(e) => setTarget(e.target.value)}
-              />
-            </div>
-          </div>
+          )}
 
           <div className="field-group" style={{ marginTop: '24px' }}>
             <label>상세 설명 *</label>
@@ -590,6 +611,29 @@ export const TaskCreatePage: React.FC = () => {
         .btn-submit:disabled {
           opacity: 0.6;
           cursor: not-allowed;
+        }
+
+        .toggle-extra-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 16px;
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px dashed var(--glass-border);
+          border-radius: 12px;
+          color: var(--text-muted);
+          font-size: 0.85rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          width: 100%;
+          justify-content: center;
+        }
+
+        .toggle-extra-btn:hover {
+          border-color: var(--primary);
+          color: var(--primary);
+          background: rgba(99, 102, 241, 0.05);
         }
 
         @media (max-width: 768px) {

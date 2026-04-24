@@ -3,9 +3,12 @@ import { createRoot } from 'react-dom/client'
 import './styles/global.css'
 import './index.css'        // design system: theme vars, component classes, fonts
 import App from './App.tsx'
+import ErrorBoundary from './components/ErrorBoundary'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )

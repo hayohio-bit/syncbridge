@@ -17,14 +17,22 @@ public class NotificationService {
     private final SimpMessagingTemplate messagingTemplate;
 
     public void sendNotification(Long userId, NotificationDto dto) {
-    String destination = "/queue/notifications";
-    
-    log.info("Sending notification to user {}: {}", userId, dto.getMessage());
-    
-    messagingTemplate.convertAndSendToUser(
-            String.valueOf(userId),
-            destination,
-            dto
-    );
-}
+        String destination = "/queue/notifications";
+        
+        log.info("Sending notification to user {}: {}", userId, dto.getMessage());
+        
+        messagingTemplate.convertAndSendToUser(
+                String.valueOf(userId),
+                destination,
+                dto
+        );
+    }
+
+    public void broadcastTaskUpdate(String action, Long taskId) {
+        log.info("Broadcasting task update: {} for task {}", action, taskId);
+        messagingTemplate.convertAndSend("/topic/tasks", Map.of(
+            "action", action,
+            "taskId", taskId
+        ));
+    }
 }

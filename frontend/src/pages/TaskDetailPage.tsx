@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuthStore } from '../store/authStore';
+import { useConfigStore } from '../store/configStore';
 import { useParams, useNavigate } from 'react-router-dom';
 import { tasksApi } from '../api/tasks';
 import { attachmentsApi } from '../api/attachments';
@@ -24,10 +25,11 @@ export const TaskDetailPage: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const dynamicConfig = useConfigStore((s) => s.roleConfig);
   
   const roleConfig = useMemo(() => {
-    return user?.role ? ROLE_CONFIGS[user.role] : ROLE_CONFIGS.GENERAL;
-  }, [user?.role]);
+    return dynamicConfig || (user?.role ? ROLE_CONFIGS[user.role] : ROLE_CONFIGS.GENERAL);
+  }, [user?.role, dynamicConfig]);
 
   const [task, setTask] = useState<TaskDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -915,3 +917,5 @@ export const TaskDetailPage: React.FC = () => {
     </MotionView>
   );
 };
+
+export default TaskDetailPage;

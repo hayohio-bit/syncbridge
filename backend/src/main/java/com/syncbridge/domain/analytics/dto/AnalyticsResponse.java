@@ -3,39 +3,55 @@ package com.syncbridge.domain.analytics.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Getter
-@Builder
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class AnalyticsResponse {
-
-    private List<JargonHitStats> topJargonHits;
-    private List<RoleRatioStats> roleRatios;
-    private ProjectEfficiencyStats productivity;
+    private List<JargonHitDto> topJargonHits;
+    private List<RoleRatioDto> roleRatios;
+    private ProductivityDto productivity;
+    private List<EventTypeCountDto> eventsByType;
 
     @Getter
+    @NoArgsConstructor
     @AllArgsConstructor
-    public static class JargonHitStats {
+    @Builder
+    public static class JargonHitDto {
         private String keyword;
         private Long hitCount;
     }
 
     @Getter
+    @NoArgsConstructor
     @AllArgsConstructor
-    public static class RoleRatioStats {
+    @Builder
+    public static class RoleRatioDto {
         private String role;
         private Long hitCount;
     }
 
     @Getter
+    @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class ProjectEfficiencyStats {
+    public static class ProductivityDto {
         private Long totalTasks;
         private Long completedTasks;
         private Double completionRate;
-        private Double avgCompletionDays;
+        private Integer avgCompletionDays;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class EventTypeCountDto {
+        private String eventType;
+        private Long count;
     }
 }

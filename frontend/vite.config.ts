@@ -16,7 +16,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'C:/syncbridge-frontend-build',
+    outDir: '../backend/src/main/resources/static',
     emptyOutDir: true
   }
 })

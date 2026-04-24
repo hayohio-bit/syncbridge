@@ -4,12 +4,18 @@ import {
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 import axiosInstance from '../api/axiosInstance';
-import { Loader2, TrendingUp, CheckCircle2, Clock, HelpCircle } from 'lucide-react';
+import { Loader2, TrendingUp, CheckCircle2, Clock, HelpCircle, Activity } from 'lucide-react';
 
 interface JargonHit    { keyword: string; hitCount: number; }
 interface RoleRatio    { role: string; hitCount: number; }
 interface Productivity { totalTasks: number; completedTasks: number; completionRate: number; avgCompletionDays: number; }
-interface AnalyticsData { topJargonHits: JargonHit[]; roleRatios: RoleRatio[]; productivity: Productivity; }
+interface EventCount   { eventType: string; count: number; }
+interface AnalyticsData { 
+  topJargonHits: JargonHit[]; 
+  roleRatios: RoleRatio[]; 
+  productivity: Productivity; 
+  eventsByType: EventCount[];
+}
 
 const CHART_COLORS = ['#6366f1', '#ec4899', '#8b5cf6', '#06b6d4', '#f59e0b', '#10b981'];
 
@@ -67,7 +73,7 @@ export const AnalyticsPage: React.FC = () => {
           Analytics &amp; Insights
         </h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '6px', fontWeight: 500, fontSize: 'var(--text-base)' }}>
-          데이터로 확인하는 커뮤니케이션 가이드라인
+          데이터로 확인하는 커뮤니케이션 가이드라인 및 시스템 인터랙션
         </p>
       </header>
 
@@ -103,9 +109,9 @@ export const AnalyticsPage: React.FC = () => {
         />
       </div>
 
-      {/* Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px' }}>
-        {/* Bar Chart */}
+      {/* Charts Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+        {/* Jargon Hits Bar Chart */}
         <div className="glass-card" style={{ padding: '28px' }}>
           <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: '24px', color: 'var(--text-main)' }}>
             가장 많이 조회된 IT 용어 TOP 5
@@ -144,7 +150,61 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Pie Chart */}
+        {/* UI Events Pie Chart (Heuristic Analysis) */}
+        <div className="glass-card" style={{ padding: '28px' }}>
+          <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: '24px', color: 'var(--text-main)' }}>
+            <Activity size={18} style={{ verticalAlign: 'middle', marginRight: '8px', color: 'var(--primary)' }} />
+            사용자 행동 패턴 분석 (Event Logs)
+          </h3>
+          <div style={{ height: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data.eventsByType}
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={8}
+                  dataKey="count"
+                  nameKey="eventType"
+                >
+                  {data.eventsByType.map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                      stroke="rgba(0,0,0,0.15)"
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(18, 21, 30, 0.95)',
+                    borderRadius: '14px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    backdropFilter: 'blur(12px)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                  }}
+                />
+                <Legend
+                  verticalAlign="bottom"
+                  align="center"
+                  iconType="circle"
+                  iconSize={8}
+                  formatter={(value) => (
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '12px' }}>
+                      {value}
+                    </span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Role Ratio Chart */}
         <div className="glass-card" style={{ padding: '28px' }}>
           <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: '24px', color: 'var(--text-main)' }}>
             직무별 용어 도움 요청 비율
@@ -165,7 +225,7 @@ export const AnalyticsPage: React.FC = () => {
                   {data.roleRatios.map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                      fill={CHART_COLORS[(index + 2) % CHART_COLORS.length]}
                       stroke="rgba(0,0,0,0.15)"
                       strokeWidth={2}
                     />

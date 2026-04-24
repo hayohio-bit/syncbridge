@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
+import { useConfigStore } from '../store/configStore';
 import { ROLE_CONFIGS } from '../config/roleConfig';
 import { tasksApi } from '../api/tasks';
 import { TaskListView } from '../components/TaskListView';
@@ -8,6 +9,11 @@ import { KanbanBoardView } from '../components/KanbanBoardView';
 import { Skeleton, CardSkeleton } from '../components/ui/Skeleton';
 import { MotionView, MotionItem } from '../components/layout/MotionView';
 import { DynamicWidget, SituationAlert } from '../components/dashboard/DynamicWidget';
+import { RoleGreeting } from '../components/dashboard/RoleGreeting';
+import { MyTasksSummary } from '../components/dashboard/MyTasksSummary';
+import { TeamProgress } from '../components/dashboard/TeamProgress';
+import { WidgetTogglePanel } from '../components/dashboard/WidgetTogglePanel';
+import { useWidgetPreferenceStore } from '../store/widgetPreferenceStore';
 import type { TaskListDto, TaskStatus } from '../types';
 import { Link } from 'react-router-dom';
 import { ClipboardList, Clock, CheckCircle2, FilePlus2, Search, ListFilter, Lightbulb } from 'lucide-react';
@@ -21,11 +27,13 @@ const STAT_CONFIG = [
 
 export const DashboardPage: React.FC = () => {
   const user = useAuthStore((s) => s.user);
-  const { isOverloaded, adaptiveMode, evaluateSituation } = useUIStore();
+  const { isOverloaded, adaptiveMode, evaluateSituation, lastTaskUpdate } = useUIStore();
+  const dynamicConfig = useConfigStore((s) => s.roleConfig);
+  const hiddenWidgets = useWidgetPreferenceStore((s) => s.hiddenWidgets);
   
   const roleConfig = useMemo(() => {
-    return user?.role ? ROLE_CONFIGS[user.role] : ROLE_CONFIGS.GENERAL;
-  }, [user?.role]);
+    return dynamicConfig || (user?.role ? ROLE_CONFIGS[user.role] : ROLE_CONFIGS.GENERAL);
+  }, [user?.role, dynamicConfig]);
 
   const [tasks, setTasks] = useState<TaskListDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +72,7 @@ export const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+  }, [fetchTasks, lastTaskUpdate]);
 
   // If overloaded, force list view for high density
   useEffect(() => {
@@ -114,6 +122,16 @@ export const DashboardPage: React.FC = () => {
 
   const renderWidget = (widgetType: string) => {
     switch (widgetType) {
+      case 'greeting':
+        return <RoleGreeting key="greeting" />;
+
+      case 'my-summary':
+      case 'my-tasks':
+        return <MyTasksSummary key="my-summary" tasks={tasks} />;
+
+      case 'team-progress':
+        return <TeamProgress key="team-progress" tasks={tasks} />;
+
       case 'stats':
         return (
           <div key="stats" className="stat-cards-grid">
@@ -218,10 +236,14 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <MotionView className="page-container" style={{ padding: 0 }}>
-      <SituationAlert isOverloaded={isOverloaded} />
+      <div className="dashboard-top-bar">
+        <SituationAlert isOverloaded={isOverloaded} />
+        <WidgetTogglePanel availableWidgets={roleConfig.dashboardLayout.map(l => l.widget)} />
+      </div>
       
       {/* Role-based Dynamic Layout Rendering */}
       {roleConfig.dashboardLayout
+        .filter((item) => !hiddenWidgets.includes(item.widget))
         .sort((a, b) => a.order - b.order)
         .map((item) => (
           <DynamicWidget 
@@ -235,6 +257,13 @@ export const DashboardPage: React.FC = () => {
         ))}
 
       <style>{`
+        .dashboard-top-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 8px;
+        }
+
         .dashboard-toolbar-v2 {
           display: flex;
           justify-content: space-between;
@@ -277,7 +306,7 @@ export const DashboardPage: React.FC = () => {
           gap: 6px;
           padding: 8px 14px;
           border-radius: 10px;
-          background: rgba(255,255,255,0.03);
+          background: rgba(255, 255, 255, 0.03);
           border: 1px solid var(--glass-border);
           font-size: 0.8rem;
           font-weight: 700;
@@ -341,3 +370,5 @@ export const DashboardPage: React.FC = () => {
     </MotionView>
   );
 };
+
+export default DashboardPage;
