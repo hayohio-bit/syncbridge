@@ -77,3 +77,11 @@ docker-compose.override.yml
 
 ### ETC
 /docs/
+# AI agent workspace files
+.agent/
+.agents/
+.claude/
+GEMINI.md
+AGENTS.md
+HANDOFF.md
+git-commit.bat
